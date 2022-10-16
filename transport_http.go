@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,21 +21,29 @@ func (s service) NewHTTP(router *mux.Router) {
 func (s service) HTTPFind(w http.ResponseWriter, r *http.Request) {
 	id := DecodeFind(r)
 	item, err := s.Find(id)
-	SendResponse(w, item, err)
+	SendResponse(w, item, err, false)
 }
 
 func (s service) HTTPFindAll(w http.ResponseWriter, r *http.Request) {
 	_, _, _ = DecodeFindAll()
 	items := s.FindAll()
-	SendResponse(w, items, nil)
+	SendResponse(w, items, nil, false)
 }
 
 func (s service) HTTPRabbitMQFind(w http.ResponseWriter, r *http.Request) {
-	payload, _ := json.Marshal(Data[0])
+	id := DecodeFind(r)
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(200)
-	w.Write(payload)
+	payload, err := s.RabbitFind(id)
+	if err != nil {
+		SendResponse(w, payload, err, false)
+		return
+	}
+
+	response, err := EncodeFind(payload)
+
+	fmt.Println("Response: ")
+	fmt.Println(response)
+	SendResponse(w, response, err, true)
 }
 
 func (s service) HTTPRabbitMQFindAll(w http.ResponseWriter, r *http.Request) {

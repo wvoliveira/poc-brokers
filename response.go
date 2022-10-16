@@ -12,11 +12,14 @@ type Response struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
-func SendResponse(w http.ResponseWriter, data interface{}, err error) {
+func SendResponse(w http.ResponseWriter, data interface{}, err error, direct bool) {
 	w.Header().Add("Content-Type", "application/json")
 	response := Response{}
-	response.Status = "successful"
-	response.Data = data
+
+	if !direct {
+		response.Status = "successful"
+		response.Data = data
+	}
 
 	if err != nil {
 		response.Status = "error"
